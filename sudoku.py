@@ -56,18 +56,21 @@ def sanitycheck(board):
 			return 0
 	print "checkig the boxes??"
 	sqt = int(np.sqrt(size))
-	r = 0   ### I think the thing with r and c only holds for 2x2. 
-	c = 0
 	for w in range(0, sqt):
 		for x in range(0, sqt):
+			box = np.zeros(size, dtype=int)
+			count = 0; 
 			for y in range(0, sqt):
 				for z in range(0, sqt):
 					num = board[sqt*w+y][sqt*x+z]
-					print "num is", num
-					print "position", str(sqt*w+y), str(sqt*x+z)
-			c = 1
-		r = 1
-
+					##print "num is", num
+					##print "position", str(sqt*w+y), str(sqt*x+z)
+					box[count] = num
+					count += 1
+			count = 0
+			res = checkline(box)
+			if res == 0:
+				return 0
 	return 1; 
 
 
