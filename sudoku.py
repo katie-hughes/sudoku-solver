@@ -72,7 +72,7 @@ def sanitycheck(board):
 			res = checkline(box)
 			if res == 0:
 				return 0
-	return 1; 
+	return 1
 
 def fillinone(line):
 	##first, check if there is only one number missing.
@@ -86,9 +86,98 @@ def fillinone(line):
 			cx = countarray(line, x)
 			if cx == 0:  ###x is the missing number. 
 				missing = x
-		for x in range(0, size):
-			if line[x] == 0:
-				line[x] = missing
+		print "the missing number in line", line, "is", missing
+		for y in range(0, size):
+			if line[y] == 0:
+				line[y] = missing
+		return 1
+	else:
+		return 0
+
+
+def singlemissing(board):
+	size = len(board)
+	ret = 0
+	print "filling in one on rows"
+	for x in range(0, size):
+		row = board[x]
+		res = fillinone(row)
+		ret += res
+	print "filling in one on columns"
+	transp = np.transpose(board)
+	for y in range(0, size): 
+		col = transp[y]
+		res = fillinone(col)
+		ret += res
+	print "filling in one on boxes"
+	sqt = int(np.sqrt(size))
+	for w in range(0, sqt):
+		for x in range(0, sqt):
+			box = np.zeros(size, dtype=int)
+			count = 0; 
+			for y in range(0, sqt):
+				for z in range(0, sqt):
+					num = board[sqt*w+y][sqt*x+z]
+					box[count] = num
+					count += 1
+			count = 0
+			res = fillinone(box)
+			### the issue: the array created for the box is separate from the board array. 
+			for a in range(0, sqt):
+				for b in range(0, sqt):
+					board[sqt*w+a][sqt*x+b] = box[count]
+					count += 1
+			count = 0
+			ret += res
+	return ret 
+
+##given an element, return the row/col/box arrays:
+def selectrow(board, row, col):
+	return board[row]
+
+def selectcol(board, row, col):
+	transp = np.transpose(board)
+	return transp[col]
+
+def selectbox(board, row, col):
+	###this is the tricky one.
+	size = len(board)
+	sqt = int(np.sqrt(size))
+	r = row / sqt
+	c = col / sqt ###returns number in range (0, sqt)
+	box = np.zeros(size, dtype=int)
+	count = 0
+	for x in range(0, sqt):
+		for y in range(0, sqt):
+			num = board[sqt*r+x][sqt*c+y]
+			box[count] = num
+			count += 1
+	return box
+
+def nootheroptions(board):
+	size = len(board)
+	for x in range(0, size):
+		for y in range(0, size):
+			num = board[x][y]
+			row = selectrow(board, x, y)
+			col = selectcol(board, x, y)
+			box = selectbox(board, x, y)
+			print "for position", str(x), str(y)
+			print "row is", row
+			print "col is", col
+			print "box is", box
+
+
+def checkdone(board):
+	##there just needs to be no zeros.
+	size = len(board)
+	for x in range(0, size):
+		line = board[x]
+		for y in range(0, size):
+			num = line[y]
+			if num == 0:
+				return 0
+	return 1
 
 
 def main():
@@ -100,9 +189,7 @@ def main():
 		exit()
 	###creating the board
 	board = np.zeros((size, size), dtype=int)
-	print board
 	printboard(board)
-
 
 	##entering known values to board
 	print "please enter in the known numbers:"
@@ -136,7 +223,21 @@ def main():
 		exit()
 	print "All good! Onwards!"
 	printboard(board)
-
+	print "filling in one"
+	ret = singlemissing(board)
+	while(ret):
+		print "ret is", ret
+		ret = singlemissing(board)
+		print "ret after is", ret
+	done = checkdone(board)
+	if done:
+		print "It is solved!"
+		printboard(board)
+		exit()
+	printboard(board)
+	print "Something else needs to be done."
+	nootheroptions(board)
+		
 
 if __name__ == "__main__":
 	main() 
