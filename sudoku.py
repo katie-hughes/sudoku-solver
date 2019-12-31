@@ -29,10 +29,11 @@ def countarray(arr, number):
 	return count
 
 def checkline(arr):
+	print "the array is", arr
 	size = len(arr)
 	for x in range(1, size+1):
 		count = countarray(arr, x);
-		print "there are", count, x, "'s in the array", arr
+		###print "there are", count, x, "'s in the array", arr
 		if count > 1:
 			return 0
 	return 1
@@ -54,7 +55,7 @@ def sanitycheck(board):
 		res = checkline(col)
 		if res == 0:
 			return 0
-	print "checkig the boxes??"
+	print "checking the boxes"
 	sqt = int(np.sqrt(size))
 	for w in range(0, sqt):
 		for x in range(0, sqt):
@@ -72,6 +73,22 @@ def sanitycheck(board):
 			if res == 0:
 				return 0
 	return 1; 
+
+def fillinone(line):
+	##first, check if there is only one number missing.
+	c0 = countarray(line, 0)
+	if c0 == 1:
+		##find the missing number
+		size = len(line)
+		missing = 0
+		for x in range(1, size+1):
+			##counting occurences of x in the line.
+			cx = countarray(line, x)
+			if cx == 0:  ###x is the missing number. 
+				missing = x
+		for x in range(0, size):
+			if line[x] == 0:
+				line[x] = missing
 
 
 def main():
