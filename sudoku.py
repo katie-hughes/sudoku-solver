@@ -1,6 +1,8 @@
 import numpy as np
 
 
+possibilities = []
+
 def printboard(board):
 	size = len(board)
 	lines = np.sqrt(size)
@@ -156,16 +158,35 @@ def selectbox(board, row, col):
 
 def nootheroptions(board):
 	size = len(board)
+	changes = 0
 	for x in range(0, size):
 		for y in range(0, size):
 			num = board[x][y]
-			row = selectrow(board, x, y)
-			col = selectcol(board, x, y)
-			box = selectbox(board, x, y)
-			print "for position", str(x), str(y)
-			print "row is", row
-			print "col is", col
-			print "box is", box
+			if num == 0:
+				row = selectrow(board, x, y)
+				col = selectcol(board, x, y)
+				box = selectbox(board, x, y)
+				print "for position", str(x), str(y)
+				print "row is", row
+				print "col is", col
+				print "box is", box
+				options = range(1, size+1)
+				###which numbers are allowed in box? 
+				for z in range(1, size+1):
+					cr = countarray(row, z)
+					cc = countarray(col, z)
+					cb = countarray(box, z)
+					if ((cr == 1) or (cc == 1) or (cb == 1)):
+						##z cannot go in position x, y. 
+						print "removing", z, "as an option from position", x, y
+						options.remove(z)
+						changes += 1
+				if len(options) == 1:  ### if there is only one number possible. 
+					last = options[0]
+					board[x][y] = last
+				global possibilities
+				possibilities[x][y] = options
+	return changes
 
 
 def checkdone(board):
@@ -236,8 +257,24 @@ def main():
 		exit()
 	printboard(board)
 	print "Something else needs to be done."
-	nootheroptions(board)
-		
+	print "Initializing possibilities list"
+	global possibilities
+	for x in range(0, size):
+		possibilities.append([])
+		for y in range(0, size):
+			possibilities[x].append([])
+	print "possibiliteis are", possibilities 
+	ret = nootheroptions(board)
+	print "possibiliteis are", possibilities 
+	while(ret):
+		print "ret is ", ret
+		ret = nootheroptions(board)
+	done = checkdone(board)
+	if done:
+		print "It is solved!"
+		printboard(board)
+		exit()
+	print "I need to do something else again."
 
 if __name__ == "__main__":
 	main() 
