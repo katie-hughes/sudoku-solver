@@ -18,7 +18,10 @@ def printboard(board):
 				print("|"),
 			else:
 				print(" "),
-			print(num),
+			if num == 0:
+				print(" "), 
+			else:
+				print(num),
 		print("\n"), 
 
 
@@ -31,7 +34,6 @@ def countarray(arr, number):
 	return count
 
 def checkline(arr):
-	print "the array is", arr
 	size = len(arr)
 	for x in range(1, size+1):
 		count = countarray(arr, x);
@@ -44,20 +46,20 @@ def checkline(arr):
 ###check that there are no duplicates in rows/cols/boxes
 def sanitycheck(board): 
 	size = len(board)
-	print "checking the rows"
+	print "Checking the rows..."
 	for x in range(0, size):
 		row = board[x]
 		res = checkline(row)
 		if res == 0:
 			return 0 
-	print "checking the columns"
+	print "Checking the columns..."
 	transp = np.transpose(board)
 	for y in range(0, size): 
 		col = transp[y]
 		res = checkline(col)
 		if res == 0:
 			return 0
-	print "checking the boxes"
+	print "Checking the boxes..."
 	sqt = int(np.sqrt(size))
 	for w in range(0, sqt):
 		for x in range(0, sqt):
@@ -100,18 +102,20 @@ def fillinone(line):
 def singlemissing(board):
 	size = len(board)
 	ret = 0
-	print "filling in one on rows"
+	print "Filling in one on the rows..."
 	for x in range(0, size):
 		row = board[x]
 		res = fillinone(row)
 		ret += res
-	print "filling in one on columns"
+	print "Filling in one on the columns..."
 	transp = np.transpose(board)
 	for y in range(0, size): 
 		col = transp[y]
 		res = fillinone(col)
+		transp[y] = col
+		board = np.transpose(transp)
 		ret += res
-	print "filling in one on boxes"
+	print "Filling in one on boxes..."
 	sqt = int(np.sqrt(size))
 	for w in range(0, sqt):
 		for x in range(0, sqt):
@@ -166,28 +170,90 @@ def nootheroptions(board):
 				row = selectrow(board, x, y)
 				col = selectcol(board, x, y)
 				box = selectbox(board, x, y)
-				print "for position", str(x), str(y)
-				print "row is", row
-				print "col is", col
-				print "box is", box
-				options = range(1, size+1)
+				##print "for position", str(x), str(y)
+				##print "row is", row
+				##print "col is", col
+				##print "box is", box
+				global possibilities
+				options = possibilities[x][y]
+				if len(options) == 0:
+					options = range(1, size+1)
 				###which numbers are allowed in box? 
-				for z in range(1, size+1):
+				for z in options:
 					cr = countarray(row, z)
 					cc = countarray(col, z)
 					cb = countarray(box, z)
 					if ((cr == 1) or (cc == 1) or (cb == 1)):
 						##z cannot go in position x, y. 
-						print "removing", z, "as an option from position", x, y
+						##print "removing", z, "as an option from position", x, y
 						options.remove(z)
 						changes += 1
 				if len(options) == 1:  ### if there is only one number possible. 
 					last = options[0]
+					print "Entering", last, "to position", x, y
 					board[x][y] = last
-				global possibilities
+					options = []
+				##updating possibilities
 				possibilities[x][y] = options
 	return changes
 
+##for a poss row/col/box
+def poss_occurances(poss, number):
+	size = len(poss)
+	count = 0
+	for x in range(0, size):
+		current = poss[x]
+		l = len(current)
+		for y in range(0, l):
+			if current[y] == number:
+				count += 1
+	return count
+
+
+
+def possibilities_manip1(board):
+	ret = 0
+	size = len(board)
+	global possibilities
+	print "manipulating rows"
+	for x in range(0, size):
+		row = board[x]
+		print "the row is", row
+		row_poss = possibilities[x]
+		print "the possibilities for the row are", row_poss
+		###count the occurences of each number in possibilities list. 
+		for y in range(0, size):
+			count = poss_occurances(row_poss, y)
+			if count == 1:
+				print "counting", y
+				raw_input("count of something is one")
+				##find the corresponding square. 
+				##find the index in the possibilities list that has y. 
+				for z in range(0, size):
+					if y in row_poss[z]:
+						##index z in row array.  
+						board[x][z] = y
+						print "setting board", x, z, "to", y
+						possibilities[x][z] = []
+						ret += 1
+	print "manipulating columns"
+	for x in range(0, size):
+		##doing the cols
+		col_poss = []
+		for c in range(0, size):
+			col_poss.append(possibilities[x][c])
+		for y in range(0, size):
+			count = poss_occurances(col_poss, y)
+			if count == 1:
+				print "counting", y
+				raw_input("count of something is one")
+				for z in range(0, size):
+					if y in col_poss[z]:
+						##indez z in the col array
+						board[x][z] = y
+						print "setting board", x, z, "to", y
+
+	return ret
 
 def checkdone(board):
 	##there just needs to be no zeros.
@@ -213,40 +279,19 @@ def main():
 	printboard(board)
 
 	##entering known values to board
-	print "please enter in the known numbers (for empty, type 0)"
+	print "please enter in the known numbers separated by spaces (for empty, type 0)"
 	for x in range(0, size):
-		print "For row", x+1, ":", 
-		s = raw_input("enter the numbers from left to right: ")
-		numbers = map(int, s.split())
-		print "numbers are", numbers
-		if len(numbers) != size:
-			print "oops"
-		else:
-			numbers = np.array(numbers)
-			board[x] = numbers
-	"""
-	while(1):
-		try:
-			r, c, n = raw_input("[row] [column] [number]:").split()
-			print "Entering", n, "to position (", r, ",", c, ")"
-			r = int(r)
-			c = int(c)
-			n = int(n)
-			if( (1<= r<= size) and (1<= c<=size) and (1<= n<=size)):
-				board[r-1][c-1] = n   ##b/c 0 indexing
+		while(1):
+			print "For row", x+1, ":", 
+			s = raw_input("enter the numbers from left to right: ")
+			numbers = map(int, s.split())
+			print "numbers are", numbers
+			if len(numbers) != size:
+				print "bad!!"
 			else:
-				print "One of your inputs does not fit the board size."
-				continue
-		except:
-			print("That was a weird input")
-		try:
-			temp = raw_input("Type 0 if you are done inputting: ")
-			if int(temp) == 0:
+				numbers = np.array(numbers)
+				board[x] = numbers
 				break
-		except:
-			pass
-	"""
-	print "Going to start!"
 	print "This puzzle requires numbers from 1 -", size, "in each row, column, and square."
 	printboard(board)
 	raw_input("Press any key to continue.")
@@ -256,39 +301,50 @@ def main():
 		print("There is an error with the numbers you inputted.")
 		exit()
 	print "All good! Onwards!"
-	printboard(board)
-	print "filling in one"
+
+	raw_input("Trying the filling in one method")
 	ret = singlemissing(board)
 	while(ret):
 		print "ret is", ret
 		ret = singlemissing(board)
 		print "ret after is", ret
+
 	done = checkdone(board)
 	if done:
 		print "It is solved!"
 		printboard(board)
 		exit()
+
 	printboard(board)
-	print "Something else needs to be done."
+
 	print "Initializing possibilities list"
 	global possibilities
 	for x in range(0, size):
 		possibilities.append([])
 		for y in range(0, size):
 			possibilities[x].append([])
-	print "possibiliteis are", possibilities 
+
+	raw_input("Trying the no other options method")
 	ret = nootheroptions(board)
-	print "possibiliteis are", possibilities 
 	while(ret):
 		print "ret is ", ret
 		ret = nootheroptions(board)
+
 	done = checkdone(board)
 	if done:
 		print "It is solved!"
 		printboard(board)
 		exit()
-	print "I need to do something else again."
+	
 	printboard(board)
+	
+	raw_input("Trying the possibilities manipulation")
+	ret = possibilities_manip1(board)
+	while(ret):
+		ret = possibilities_manip1(board)
+		printboard(board)
+	
+	print "time to try something else."
 
 if __name__ == "__main__":
-	main() 
+	main()
