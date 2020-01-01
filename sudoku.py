@@ -218,14 +218,11 @@ def possibilities_manip1(board):
 	print "manipulating rows"
 	for x in range(0, size):
 		row = board[x]
-		print "the row is", row
 		row_poss = possibilities[x]
-		print "the possibilities for the row are", row_poss
 		###count the occurences of each number in possibilities list. 
 		for y in range(0, size):
 			count = poss_occurances(row_poss, y)
 			if count == 1:
-				print "counting", y
 				raw_input("count of something is one")
 				##find the corresponding square. 
 				##find the index in the possibilities list that has y. 
@@ -245,13 +242,29 @@ def possibilities_manip1(board):
 		for y in range(0, size):
 			count = poss_occurances(col_poss, y)
 			if count == 1:
-				print "counting", y
 				raw_input("count of something is one")
 				for z in range(0, size):
 					if y in col_poss[z]:
 						##indez z in the col array
 						board[x][z] = y
 						print "setting board", x, z, "to", y
+						ret += 1
+	print "manipulating boxes"
+	sqt = int(np.sqrt(size))
+	for w in range(0, sqt):
+		for x in range(0, sqt):
+			box_poss = []
+			for y in range(0, sqt):
+				for z in range(0, sqt):
+					poss = possibilities[sqt*w+y][sqt*x+z]
+					##print "num is", num
+					##print "position", str(sqt*w+y), str(sqt*x+z)
+					box_poss.append(poss)
+			for n in range(0, size):
+				count = poss_occurances(box_poss, n)
+				if count == 1:
+					print "n=", n
+					raw_input("count of something is one")
 
 	return ret
 
