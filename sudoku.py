@@ -213,7 +213,18 @@ def main():
 	printboard(board)
 
 	##entering known values to board
-	print "please enter in the known numbers:"
+	print "please enter in the known numbers (for empty, type 0)"
+	for x in range(0, size):
+		print "For row", x+1, ":", 
+		s = raw_input("enter the numbers from left to right: ")
+		numbers = map(int, s.split())
+		print "numbers are", numbers
+		if len(numbers) != size:
+			print "oops"
+		else:
+			numbers = np.array(numbers)
+			board[x] = numbers
+	"""
 	while(1):
 		try:
 			r, c, n = raw_input("[row] [column] [number]:").split()
@@ -234,9 +245,11 @@ def main():
 				break
 		except:
 			pass
+	"""
 	print "Going to start!"
 	print "This puzzle requires numbers from 1 -", size, "in each row, column, and square."
 	printboard(board)
+	raw_input("Press any key to continue.")
 	print "Performing preliminary check"
 	sc = sanitycheck(board)
 	if sc == 0:
@@ -275,6 +288,7 @@ def main():
 		printboard(board)
 		exit()
 	print "I need to do something else again."
+	printboard(board)
 
 if __name__ == "__main__":
 	main() 
