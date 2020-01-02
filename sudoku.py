@@ -46,20 +46,20 @@ def checkline(arr):
 ###check that there are no duplicates in rows/cols/boxes
 def sanitycheck(board): 
 	size = len(board)
-	print "Checking the rows..."
+	##print "Checking the rows..."
 	for x in range(0, size):
 		row = board[x]
 		res = checkline(row)
 		if res == 0:
 			return 0 
-	print "Checking the columns..."
+	##print "Checking the columns..."
 	transp = np.transpose(board)
 	for y in range(0, size): 
 		col = transp[y]
 		res = checkline(col)
 		if res == 0:
 			return 0
-	print "Checking the boxes..."
+	##print "Checking the boxes..."
 	sqt = int(np.sqrt(size))
 	for w in range(0, sqt):
 		for x in range(0, sqt):
@@ -160,42 +160,6 @@ def selectbox(board, row, col):
 			count += 1
 	return box
 
-def nootheroptions(board):
-	size = len(board)
-	changes = 0
-	for x in range(0, size):
-		for y in range(0, size):
-			num = board[x][y]
-			if num == 0:
-				row = selectrow(board, x, y)
-				col = selectcol(board, x, y)
-				box = selectbox(board, x, y)
-				##print "for position", str(x), str(y)
-				##print "row is", row
-				##print "col is", col
-				##print "box is", box
-				global possibilities
-				options = possibilities[x][y]
-				if len(options) == 0:
-					options = range(1, size+1)
-				###which numbers are allowed in box? 
-				for z in options:
-					cr = countarray(row, z)
-					cc = countarray(col, z)
-					cb = countarray(box, z)
-					if ((cr == 1) or (cc == 1) or (cb == 1)):
-						##z cannot go in position x, y. 
-						##print "removing", z, "as an option from position", x, y
-						options.remove(z)
-						changes += 1
-				if len(options) == 1:  ### if there is only one number possible. 
-					last = options[0]
-					print "Entering", last, "to position", x, y
-					board[x][y] = last
-					options = []
-				##updating possibilities
-				possibilities[x][y] = options
-	return changes
 
 ##for a poss row/col/box
 def poss_occurances(poss, number):
@@ -209,6 +173,145 @@ def poss_occurances(poss, number):
 				count += 1
 	return count
 
+def poss_row(index):
+	global possibilities
+	return possibilities[index]
+
+def poss_col(index):
+	global possibilities
+	size= len(possibilities)
+	col_poss = []
+	for x in range(0, size):
+		col_poss.append(possibilities[x][index])
+	return col_poss
+
+def poss_box(index):
+	global possibilities
+	size = len(possibilities)
+	sqt = int(np.sqrt(size))
+	r = index / sqt
+	c = index % sqt ###returns number in range (0, sqt)
+	box_poss = []
+	for x in range(0, sqt):
+		for y in range(0, sqt):
+			poss = possibilities[sqt*r+x][sqt*c+y]
+			box_poss.append(poss)
+	return box_poss
+
+def box_index(size, row, col):
+	sqt = int(np.sqrt(size))
+	r = row / sqt
+	c = col / sqt
+	return sqt*r+c
+	
+
+def place(num, row, col, board):
+	print "placing", num, "on board", row, col
+	board[row][col] = num
+	printboard(board)
+	size = len(board)
+	global possibilities
+	##print "poss were", possibilities[row][col]
+	possibilities[row][col] = []
+	fill_possibilities(board)
+	##remove_poss_row(row, num, board)
+	##remove_poss_col(col, num, board)
+	##remove_poss_box(box_index(size, row, col), num, board)
+	oneoption(board)
+	sc = sanitycheck(board)
+	if sc==0:
+		print "error"
+		exit()
+
+def remove_poss_row(index, num, board):
+	print "removing", num, "from row", index
+	global possibilities
+	size = len(possibilities)
+	for x in range(0, size):
+		poss = possibilities[index][x]
+		if num in poss:
+			poss.remove(num)
+			possibilities[index][x] = poss
+		##if len(poss) == 1:
+		##	n = poss[0]
+		##	place(n, index, x, board)
+
+def remove_poss_col(index, num, board):
+	print "removing", num, "from column", index
+	global possibilities
+	size = len(possibilities)
+	for x in range(0, size):
+		poss = possibilities[x][index]
+		if num in poss:
+			poss.remove(num)
+			possibilities[x][index] = poss
+		##if len(poss) == 1:
+		##	n = poss[0]
+		##	place(n, x, index, board)
+
+def remove_poss_box(index, num, board): 
+	print "removing", num, "from box", index
+	global possibilities
+	size = len(possibilities)
+	sqt = int(np.sqrt(size))
+	r = index % sqt
+	c = index / sqt
+	for x in range(0, sqt):
+		for y in range(0, sqt):
+			poss = possibilities[sqt*r+x][sqt*c+y]
+			if num in poss:
+				poss.remove(num)
+				possibilities[sqt*r+x][sqt*c+y] = poss
+			##if len(poss) == 1:
+			##	n = poss[0]
+			##	place(n, sqt*r+x, sqt*c+y, board)
+
+
+def fill_possibilities(board):
+	size = len(board)
+	changes = 0
+	for x in range(0, size):
+		for y in range(0, size):
+			num = board[x][y]
+			if num == 0:
+				##print "Filling possibilities for board", x, y
+				row = selectrow(board, x, y)
+				col = selectcol(board, x, y)
+				box = selectbox(board, x, y)
+				global possibilities
+				if len(possibilities[x][y]) == 0:
+					options = range(1, size+1)
+				else:
+					options = possibilities[x][y]
+				copy = list(options)
+				###which numbers are allowed in box? 
+				for z in copy: #range(1, size+1):
+					cr = countarray(row, z)
+					cc = countarray(col, z)
+					cb = countarray(box, z)
+					if ((cr == 1) or (cc == 1) or (cb == 1)):
+						##z cannot go in position x, y. 
+						##print "removing", z, "as an option from position", x, y
+						options.remove(z)
+						changes += 1
+				##print "they are", options
+				possibilities[x][y] = options
+	return changes
+
+
+def oneoption(board):
+	print "one option"
+	size = len(board)
+	ret = 0
+	global possibilities
+	for x in range(0, size):
+		for y in range(0, size):
+			if len(possibilities[x][y]) == 1:
+				num = possibilities[x][y][0]
+				place(num, x, y, board)
+				ret += 1
+	return ret
+
 
 
 def possibilities_manip1(board):
@@ -217,55 +320,61 @@ def possibilities_manip1(board):
 	global possibilities
 	print "manipulating rows"
 	for x in range(0, size):
-		row = board[x]
-		row_poss = possibilities[x]
+		row_poss = poss_row(x)
+		print "row poss is", row_poss
 		###count the occurences of each number in possibilities list. 
-		for y in range(0, size):
-			count = poss_occurances(row_poss, y)
+		for n in range(0, size):
+			count = poss_occurances(row_poss, n)
 			if count == 1:
 				raw_input("count of something is one")
 				##find the corresponding square. 
-				##find the index in the possibilities list that has y. 
+				##find the index in the possibilities list that has n. 
 				for z in range(0, size):
-					if y in row_poss[z]:
+					if n in row_poss[z]:
 						##index z in row array.  
-						board[x][z] = y
-						print "setting board", x, z, "to", y
-						possibilities[x][z] = []
+						place(n, x, z, board)
 						ret += 1
 	print "manipulating columns"
 	for x in range(0, size):
 		##doing the cols
-		col_poss = []
-		for c in range(0, size):
-			col_poss.append(possibilities[x][c])
-		for y in range(0, size):
-			count = poss_occurances(col_poss, y)
+		col_poss = poss_col(x)
+		print "col poss is", col_poss
+		for n in range(0, size):
+			count = poss_occurances(col_poss, n)
 			if count == 1:
+				print "col is", x
+				print "number is", n
 				raw_input("count of something is one")
 				for z in range(0, size):
-					if y in col_poss[z]:
+					if n in col_poss[z]:
 						##indez z in the col array
-						board[x][z] = y
-						print "setting board", x, z, "to", y
+						place(n, z, x, board)
 						ret += 1
 	print "manipulating boxes"
 	sqt = int(np.sqrt(size))
 	for w in range(0, sqt):
 		for x in range(0, sqt):
-			box_poss = []
-			for y in range(0, sqt):
-				for z in range(0, sqt):
-					poss = possibilities[sqt*w+y][sqt*x+z]
-					##print "num is", num
-					##print "position", str(sqt*w+y), str(sqt*x+z)
-					box_poss.append(poss)
+			box_poss = poss_box(sqt*w+x)
+			print "box poss is", box_poss
 			for n in range(0, size):
 				count = poss_occurances(box_poss, n)
 				if count == 1:
-					print "n=", n
+					print "number that only occurs once is", n
 					raw_input("count of something is one")
-
+					##finding the index of the number.
+					index = 0
+					for a in range(0, size):
+						if n in box_poss[a]:
+							index = a
+					print "the index of the numbr in the box is", index
+					itr = 0
+					for b in range(0, sqt):
+						for c in range(0, sqt):
+							if itr == index:
+								place(n, sqt*w+b, sqt*x+c, board)
+								ret += 1
+							itr += 1 
+								
 	return ret
 
 def checkdone(board):
@@ -337,11 +446,15 @@ def main():
 		for y in range(0, size):
 			possibilities[x].append([])
 
-	raw_input("Trying the no other options method")
-	ret = nootheroptions(board)
-	while(ret):
-		print "ret is ", ret
-		ret = nootheroptions(board)
+	raw_input("FIlling in possibilities")
+	ret = fill_possibilities(board)
+	printboard(board)
+	
+
+	raw_input("one option")
+	ret = oneoption(board)
+	while ret:
+		ret = oneoption(board)
 
 	done = checkdone(board)
 	if done:
@@ -349,15 +462,20 @@ def main():
 		printboard(board)
 		exit()
 	
-	printboard(board)
-	
 	raw_input("Trying the possibilities manipulation")
 	ret = possibilities_manip1(board)
 	while(ret):
 		ret = possibilities_manip1(board)
 		printboard(board)
+
+	done = checkdone(board)
+	if done:
+		print "It is solved!"
+		printboard(board)
+		exit()
 	
 	print "time to try something else."
+	printboard(board)
 
 if __name__ == "__main__":
 	main()
