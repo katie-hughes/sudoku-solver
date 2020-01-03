@@ -22,6 +22,12 @@ def printboard(board):
 				print(" "), 
 			else:
 				print(num),
+			if y == (size-1):
+				print("|"), 
+		if x == (size-1):
+			print("\n"), 
+			for z in range(0, size):
+				print("__ "), 
 		print("\n"), 
 
 
@@ -86,9 +92,9 @@ def fillinone(line):
 		for x in range(1, size+1):
 			##counting occurences of x in the line.
 			cx = countarray(line, x)
-			if cx == 0:  ###x is the missing number. 
+			if cx == 0: ##x is the missing number
 				missing = x
-		print "the missing number in line", line, "is", missing
+		##finding the missing position
 		for y in range(0, size):
 			if line[y] == 0:
 				line[y] = missing
@@ -100,12 +106,13 @@ def fillinone(line):
 def singlemissing(board):
 	size = len(board)
 	ret = 0
-	print "Filling in one on the rows..."
+	##print "Filling in one on the rows..."
 	for x in range(0, size):
 		row = board[x]
 		res = fillinone(row)
+		board[x] = row
 		ret += res
-	print "Filling in one on the columns..."
+	##print "Filling in one on the columns..."
 	transp = np.transpose(board)
 	for y in range(0, size): 
 		col = transp[y]
@@ -113,7 +120,7 @@ def singlemissing(board):
 		transp[y] = col
 		board = np.transpose(transp)
 		ret += res
-	print "Filling in one on boxes..."
+	##print "Filling in one on boxes..."
 	sqt = int(np.sqrt(size))
 	for w in range(0, sqt):
 		for x in range(0, sqt):
@@ -126,7 +133,6 @@ def singlemissing(board):
 					count += 1
 			count = 0
 			res = fillinone(box)
-			### the issue: the array created for the box is separate from the board array. 
 			for a in range(0, sqt):
 				for b in range(0, sqt):
 					board[sqt*w+a][sqt*x+b] = box[count]
@@ -135,7 +141,7 @@ def singlemissing(board):
 			ret += res
 	return ret 
 
-##given an element, return the row/col/box arrays:
+##given an square, select its row/column/box
 def selectrow(board, row, col):
 	return board[row]
 
@@ -144,11 +150,10 @@ def selectcol(board, row, col):
 	return transp[col]
 
 def selectbox(board, row, col):
-	###this is the tricky one.
 	size = len(board)
 	sqt = int(np.sqrt(size))
 	r = row / sqt
-	c = col / sqt ###returns number in range (0, sqt)
+	c = col / sqt 
 	box = np.zeros(size, dtype=int)
 	count = 0
 	for x in range(0, sqt):
@@ -159,7 +164,7 @@ def selectbox(board, row, col):
 	return box
 
 
-##for a poss row/col/box
+##for a possibilities row/column/box
 def poss_occurances(poss, number):
 	size = len(poss)
 	count = 0
@@ -171,6 +176,7 @@ def poss_occurances(poss, number):
 				count += 1
 	return count
 
+##given a row/column/box index, return the list of possibilities
 def poss_row(index):
 	global possibilities
 	return possibilities[index]
@@ -203,25 +209,25 @@ def box_index(size, row, col):
 	return sqt*r+c
 	
 
+##placing a number at a particular location, and updating possibilities list.
 def place(num, row, col, board):
 	##print "placing", num, "on board", row, col
 	board[row][col] = num
 	size = len(board)
 	global possibilities
-	##print "poss were", possibilities[row][col]
 	possibilities[row][col] = []
-	fill_possibilities(board)
-	##remove_poss_row(row, num, board)
-	##remove_poss_col(col, num, board)
-	##remove_poss_box(box_index(size, row, col), num, board)
+	##fill_possibilities(board)
+	remove_poss_row(row, num, board)
+	remove_poss_col(col, num, board)
+	remove_poss_box(box_index(size, row, col), num, board)
 	oneoption(board)
 	sc = sanitycheck(board)
 	if sc==0:
 		print "error"
 		exit()
 
+##remove a number from a row/column/box of possibilities.
 def remove_poss_row(index, num, board):
-	print "removing", num, "from row", index
 	global possibilities
 	size = len(possibilities)
 	for x in range(0, size):
@@ -229,12 +235,8 @@ def remove_poss_row(index, num, board):
 		if num in poss:
 			poss.remove(num)
 			possibilities[index][x] = poss
-		##if len(poss) == 1:
-		##	n = poss[0]
-		##	place(n, index, x, board)
 
 def remove_poss_col(index, num, board):
-	print "removing", num, "from column", index
 	global possibilities
 	size = len(possibilities)
 	for x in range(0, size):
@@ -242,26 +244,19 @@ def remove_poss_col(index, num, board):
 		if num in poss:
 			poss.remove(num)
 			possibilities[x][index] = poss
-		##if len(poss) == 1:
-		##	n = poss[0]
-		##	place(n, x, index, board)
 
 def remove_poss_box(index, num, board): 
-	print "removing", num, "from box", index
 	global possibilities
 	size = len(possibilities)
 	sqt = int(np.sqrt(size))
-	r = index % sqt
-	c = index / sqt
+	r = index / sqt
+	c = index % sqt
 	for x in range(0, sqt):
 		for y in range(0, sqt):
 			poss = possibilities[sqt*r+x][sqt*c+y]
 			if num in poss:
 				poss.remove(num)
 				possibilities[sqt*r+x][sqt*c+y] = poss
-			##if len(poss) == 1:
-			##	n = poss[0]
-			##	place(n, sqt*r+x, sqt*c+y, board)
 
 
 def fill_possibilities(board):
@@ -312,7 +307,6 @@ def possibilities_manip1(board):
 	ret = 0
 	size = len(board)
 	global possibilities
-	print "manipulating rows"
 	for x in range(0, size):
 		row_poss = poss_row(x)
 		##print "row poss is", row_poss
@@ -326,7 +320,6 @@ def possibilities_manip1(board):
 					if n in row_poss[z]:
 						place(n, x, z, board)
 						ret += 1
-	print "manipulating columns"
 	for x in range(0, size):
 		col_poss = poss_col(x)
 		##print "col poss is", col_poss
@@ -339,7 +332,6 @@ def possibilities_manip1(board):
 						##indez z in the col array
 						place(n, z, x, board)
 						ret += 1
-	print "manipulating boxes"
 	sqt = int(np.sqrt(size))
 	for w in range(0, sqt):
 		for x in range(0, sqt):
@@ -468,12 +460,12 @@ def main():
 	board = np.zeros((size, size), dtype=int)
 
 	##entering known values to board
-	print "Please enter in the known numbers by row separated by spaces (for empty, type 0)"
+	print "Please enter in the known numbers by row, from left to right, separated by spaces (for empty, type 0)"
 	for x in range(0, size):
 		while(1):
 			try:
-				print "For row", x+1, ":", 
-				s = raw_input("enter the numbers from left to right: ")
+				print "Row", x+1, 
+				s = raw_input(": ")
 				numbers = map(int, s.split())
 				##print "numbers are", numbers
 				if len(numbers) != size:
@@ -498,9 +490,7 @@ def main():
 	raw_input("Press any key to continue.")
 	ret = singlemissing(board)
 	while(ret):
-		print "ret is", ret
 		ret = singlemissing(board)
-		print "ret after is", ret
 
 	isdone(board)
 	printboard(board)
@@ -527,7 +517,6 @@ def main():
 	ret = possibilities_manip1(board)
 	while(ret):
 		ret = possibilities_manip1(board)
-		printboard(board)
 
 	isdone(board)
 	printboard(board)
