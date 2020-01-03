@@ -1,7 +1,7 @@
 So far the possibilities manipulation function does not work. 
 The goal is, given a list of possibilities for a row/column/box:
 If the same x numbers are the only possiblities in x squares in this list,
-Then those numbers can be eliminated from the remaining boxes in the list.
+Then those numbers can be eliminated from the remaining squares in the list.
 
 Right now it works for rows/columns for a very limited case of x=2. 
 The course of action is to first get it working for all cases of x=2, then move on to generalizing over all x
