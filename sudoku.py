@@ -204,7 +204,7 @@ def box_index(size, row, col):
 	
 
 def place(num, row, col, board):
-	print "placing", num, "on board", row, col
+	##print "placing", num, "on board", row, col
 	board[row][col] = num
 	size = len(board)
 	global possibilities
@@ -441,97 +441,102 @@ def checkdone(board):
 				return 0
 	return 1
 
+def isdone(board):
+	done = checkdone(board)
+	if done:
+		print "It is solved!"
+		printboard(board)
+		exit()
 
 def main():
 	print "Welcome to my sudoku solver!"
-	size = input("Enter the size of the board:")
-	print "Board size is", size
-	if (int(np.sqrt(size)))**2 != size:
-		print "size is not a square"
-		exit()
+	
+	size = 0
+	while(1):	
+		try:
+			s = raw_input("Enter the size of the board:")
+			size = int(s)
+			print "Initializing a", size, "x", size, "sudoku board."
+			if (int(np.sqrt(size)))**2 != size:
+				print "The size must be a square."
+			else:
+				break
+		except:
+			print "Input should be a single number."
 	###creating the board
+	print "This puzzle requires numbers from 1 -", size, "in each row, column, and box."
 	board = np.zeros((size, size), dtype=int)
-	printboard(board)
 
 	##entering known values to board
-	print "please enter in the known numbers separated by spaces (for empty, type 0)"
+	print "Please enter in the known numbers by row separated by spaces (for empty, type 0)"
 	for x in range(0, size):
 		while(1):
-			print "For row", x+1, ":", 
-			s = raw_input("enter the numbers from left to right: ")
-			numbers = map(int, s.split())
-			print "numbers are", numbers
-			if len(numbers) != size:
-				print "bad!!"
-			else:
-				numbers = np.array(numbers)
-				board[x] = numbers
-				break
-	print "This puzzle requires numbers from 1 -", size, "in each row, column, and square."
+			try:
+				print "For row", x+1, ":", 
+				s = raw_input("enter the numbers from left to right: ")
+				numbers = map(int, s.split())
+				##print "numbers are", numbers
+				if len(numbers) != size:
+					print "Input should contain", size, "numbers."
+				else:
+					numbers = np.array(numbers)
+					board[x] = numbers
+					break
+			except:
+				print "Unrecognized input."
+
 	printboard(board)
 	raw_input("Press any key to continue.")
-	print "Performing preliminary check"
+	print "Performing preliminary check..."
 	sc = sanitycheck(board)
 	if sc == 0:
 		print("There is an error with the numbers you inputted.")
 		exit()
-	print "All good! Onwards!"
+	print "All good!"
 
-	raw_input("Trying the filling in one method")
+	print "Checking for cases where a row, column, or box is only missing one number.",
+	raw_input("Press any key to continue.")
 	ret = singlemissing(board)
 	while(ret):
 		print "ret is", ret
 		ret = singlemissing(board)
 		print "ret after is", ret
 
-	done = checkdone(board)
-	if done:
-		print "It is solved!"
-		printboard(board)
-		exit()
-
+	isdone(board)
 	printboard(board)
 
-	print "Initializing possibilities list"
+	print "Initializing a list of possible numbers for each square."
 	global possibilities
 	for x in range(0, size):
 		possibilities.append([])
 		for y in range(0, size):
 			possibilities[x].append([])
-
-	raw_input("FIlling in possibilities")
-	ret = fill_possibilities(board)
-	printboard(board)
+	fill_possibilities(board)
 	
-
-	raw_input("one option")
+	print "Checking for cases where there is only one possible number allowed in a square.",
+	raw_input("Press any key to continue.")
 	ret = oneoption(board)
 	while ret:
 		ret = oneoption(board)
-
-	done = checkdone(board)
-	if done:
-		print "It is solved!"
-		printboard(board)
-		exit()
 	
-	raw_input("Trying the possibilities manipulation")
+	isdone(board)
+	printboard(board)
+
+	print "Checking for cases where a number is only allowed in one square in a row, column, or box.",
+	raw_input("Press any key to continue.")
 	ret = possibilities_manip1(board)
 	while(ret):
 		ret = possibilities_manip1(board)
 		printboard(board)
 
-	done = checkdone(board)
-	if done:
-		print "It is solved!"
-		printboard(board)
-		exit()
+	isdone(board)
+	printboard(board)
 	
-	print "time to try something else."
-	printboard(board)
-
+	raw_input("Performing further possibilities manipulations:")
 	poss_manip2(board)
+	isdone(board)
 	printboard(board)
+	print "I need to do something else."
 
 if __name__ == "__main__":
 	main()
