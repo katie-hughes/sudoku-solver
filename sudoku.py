@@ -303,7 +303,7 @@ def oneoption(board):
 
 
 
-def possibilities_manip1(board):
+def onespot(board):
 	ret = 0
 	size = len(board)
 	global possibilities
@@ -488,9 +488,14 @@ def main():
 
 	print "Checking for cases where a row, column, or box is only missing one number.",
 	raw_input("Press any key to continue.")
+	c0 = 0
 	ret = singlemissing(board)
+	c0 += ret
 	while(ret):
 		ret = singlemissing(board)
+		c0 += ret
+	
+	print c0, "numbers inputted with this method."
 
 	isdone(board)
 	printboard(board)
@@ -501,22 +506,33 @@ def main():
 		possibilities.append([])
 		for y in range(0, size):
 			possibilities[x].append([])
-	fill_possibilities(board)
+	changes = fill_possibilities(board)
+	print changes, "numbers removed from the possibilities list."
 	
 	print "Checking for cases where there is only one possible number allowed in a square.",
 	raw_input("Press any key to continue.")
+	c1 = 0
 	ret = oneoption(board)
+	c1 += ret
 	while ret:
 		ret = oneoption(board)
+		c1 += ret
+	
+	print c1, "numbers inputted with this method."
 	
 	isdone(board)
 	printboard(board)
 
 	print "Checking for cases where a number is only allowed in one square in a row, column, or box.",
 	raw_input("Press any key to continue.")
-	ret = possibilities_manip1(board)
+	c2 = 0
+	ret = onespot(board)
+	c2 += ret
 	while(ret):
-		ret = possibilities_manip1(board)
+		ret = onespot(board)
+		c2 += ret
+
+	print c2, "numbers inputted with this method."
 
 	isdone(board)
 	printboard(board)
