@@ -1,5 +1,6 @@
 import numpy as np
 
+from itertools import combinations
 
 possibilities = []
 
@@ -227,9 +228,10 @@ def place(num, row, col, board):
 		exit()
 
 ##remove a number from a row/column/box of possibilities.
-def remove_poss_row(index, num, board):
+def remove_poss_row(index, num, board):   ##indices = None
 	global possibilities
 	size = len(possibilities)
+	#if indices=None:
 	for x in range(0, size):
 		poss = possibilities[index][x]
 		if num in poss:
@@ -365,7 +367,7 @@ def list_equal(l1, l2):
 		ret = 1
 	return ret
 
-def poss_manip2(board):
+def poss_manip(board):
 	global possibilities
 	print "doing the rows"
 	size = len(board)
@@ -373,26 +375,42 @@ def poss_manip2(board):
 		row_poss = poss_row(x)
 		print "row poss is", row_poss
 		indices = []
+		poss2 = []
 		for p in range(0, size): 
 			if len(row_poss[p]) == 2:
 				indices.append(p)
-		if len(indices)==2:
-			ret = list_equal(row_poss[indices[0]], row_poss[indices[1]])
+				poss2.append(row_poss[p])
+		###indices contains a list of the indices in row with 2 elements
+		###poss2 contains a list of the possibilities in row with 2 elements. 
+		comb_indices = combinations(indices, 2)
+		comb_poss2 = combinations(poss2, 2)
+		comb_indices = list(comb_indices)
+		comb_poss2 = list(comb_poss2)
+		##these are lists of tuples of all the combinations between 2 element pieces
+		for c in range(0, len(comb_indices)):
+			first = comb_poss2[c][0]
+			second = comb_poss2[c][1]
+			print "comb is", first, second
+			ret = list_equal(first, second)
 			if ret:
-				##remove the elements that form the two poss.
-				n0 = row_poss[indices[0]][0]
-				n1 = row_poss[indices[0]][1]
+				n0 = first[0]
+				n1 = first[1]
+				##remove n0 and n1 from the row possibilities
 				print "removing", n0, n1, "from row poss"
-				##remove_poss_row(x, n0, board) bad b/c removes it from entire row
-				##remove_poss_row(x, n1, board) just want to remove from other boxes
+				i0 = comb_indices[c][0]
+				i1 = comb_indices[c][1]
+				##these are the indices I want to step over. 
 				for s in range(0, size):
-					if s not in indices:
+					if s!=i0 and s!=i1:
 						if n0 in possibilities[x][s]:
 							possibilities[x][s].remove(n0)
 						if n1 in possibilities[x][s]:
 							possibilities[x][s].remove(n1)
 				print "row poss is", poss_row(x)
 				oneoption(board)
+				break
+					
+	"""
 	print "doing the cols"
 	for x in range(0, size):
 		col_poss = poss_col(x)
@@ -420,7 +438,7 @@ def poss_manip2(board):
 	for x in range(0, size):
 		box_poss = poss_box(x)
 		print "box poss is", box_poss
-			
+	"""		
 
 def checkdone(board):
 	##there just needs to be no zeros.
@@ -538,7 +556,7 @@ def main():
 	printboard(board)
 	
 	raw_input("Performing further possibilities manipulations:")
-	poss_manip2(board)
+	poss_manip(board)
 	isdone(board)
 	printboard(board)
 	print "I need to do something else."
