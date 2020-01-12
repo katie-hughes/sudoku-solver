@@ -27,6 +27,7 @@ def printboard(board):
 				print("|"), 
 		if x == (size-1):
 			print("\n"), 
+			print(" "), 
 			for z in range(0, size):
 				print("__ "), 
 		print("\n"), 
@@ -108,6 +109,7 @@ def fillinone(line):
 		return 0
 
 ##checks for cases where rows/cols/boxes are only missing one number.
+##does not use possibilities
 def singlemissing(board):
 	print "single missing"
 	size = len(board)
@@ -248,17 +250,15 @@ def box_index(size, row, col):
 
 ##placing a number at a particular location, and updating possibilities list.
 def place(num, row, col, board):
-	print "placing", num, "on board", row, col
+	##print "placing", num, "on board", row, col
 	if board[row][col] != 0:
 		print "wtf"
 		exit()
 	else:
 		board[row][col] = num
-		printboard(board)
 		size = len(board)
 		global possibilities
 		possibilities[row][col] = []
-		##fill_possibilities(board)
 		remove_poss_row(row, num, board)
 		remove_poss_col(col, num, board)
 		remove_poss_box(box_index(size, row, col), num, board)
@@ -273,24 +273,24 @@ def remove_poss_row(index, num, board):   ##indices = None
 	global possibilities
 	size = len(possibilities)
 	#if indices=one:
-	print "row before:", poss_row(index)
+	##print "row before:", poss_row(index)
 	for x in range(0, size):
 		poss = possibilities[index][x]
 		if num in poss:
 			poss.remove(num)
 			possibilities[index][x] = poss
-	print "row after:", poss_row(index)
+	##print "row after:", poss_row(index)
 
 def remove_poss_col(index, num, board):
 	global possibilities
 	size = len(possibilities)
-	print "col before:", poss_col(index)
+	##print "col before:", poss_col(index)
 	for x in range(0, size):
 		poss = possibilities[x][index]
 		if num in poss:
 			poss.remove(num)
 			possibilities[x][index] = poss
-	print "col after:", poss_col(index)
+	##print "col after:", poss_col(index)
 
 def remove_poss_box(index, num, board): 
 	global possibilities
@@ -298,20 +298,19 @@ def remove_poss_box(index, num, board):
 	sqt = int(np.sqrt(size))
 	r = index / sqt
 	c = index % sqt
-	print "box before:", poss_box(index)
+	##print "box before:", poss_box(index)
 	for x in range(0, sqt):
 		for y in range(0, sqt):
 			poss = possibilities[sqt*r+x][sqt*c+y]
 			if num in poss:
 				poss.remove(num)
 				possibilities[sqt*r+x][sqt*c+y] = poss
-	print "box after:", poss_box(index)
+	##print "box after:", poss_box(index)
 
 
 ##fill the list of possibilities. Should be done after initialization
 ##of the possibilities list, but can in theory be done later too. 
 def fill_possibilities(board):
-	print "filling possibilitites"
 	size = len(board)
 	changes = 0
 	for x in range(0, size):
@@ -339,9 +338,8 @@ def fill_possibilities(board):
 				possibilities[x][y] = options
 	return changes
 
-
+###there is only one option in the possibilities list.
 def oneoption(board):
-	print "one option"
 	size = len(board)
 	ret = 0
 	global possibilities
@@ -349,27 +347,23 @@ def oneoption(board):
 		for y in range(0, size):
 			if len(possibilities[x][y]) == 1:
 				num = possibilities[x][y][0]
-				print "one option", num
-				print "pos", x, y
 				place(num, x, y, board)
 				ret += 1
 	return ret
 
 
-
+#a number can only go in one spot in a row/col/box
 def onespot(board):
-	print "one spot"
 	ret = 0
 	size = len(board)
 	global possibilities
 	for x in range(0, size):
 		row_poss = poss_row(x)
-		print "row poss is", row_poss
+		##print "row poss is", row_poss
 		###count the occurences of each number in possibilities list. 
 		for n in range(1, size+1):
 			count = poss_occurances(row_poss, n)
 			if count == 1:
-				##raw_input("count of something is one")
 				##find the corresponding square. 
 				for z in range(0, size):
 					if n in row_poss[z]:
@@ -378,11 +372,10 @@ def onespot(board):
 						break
 	for x in range(0, size):
 		col_poss = poss_col(x)
-		print "col poss is", col_poss
+		##print "col poss is", col_poss
 		for n in range(1, size+1):
 			count = poss_occurances(col_poss, n)
 			if count == 1:
-				##raw_input("count of something is one")
 				for z in range(0, size):
 					if n in col_poss[z]:
 						##indez z in the col array
@@ -393,7 +386,7 @@ def onespot(board):
 	for w in range(0, sqt):
 		for x in range(0, sqt):
 			box_poss = poss_box(sqt*w+x)
-			print "box poss is", box_poss
+			##print "box poss is", box_poss
 			for n in range(1, size+1):
 				count = poss_occurances(box_poss, n)
 				if count == 1:
@@ -422,6 +415,13 @@ def list_equal(l1, l2):
 		ret = 1
 	return ret
 
+
+def list_manip(lst):
+	size = len(lst)
+	numbers = []
+	for x in range(0, size):
+		ind = lst[x]
+
 def poss_manip(board):
 	count = 0
 	global possibilities
@@ -429,7 +429,7 @@ def poss_manip(board):
 	size = len(board)
 	for x in range(0, size):
 		row_poss = poss_row(x)
-		print "row poss is", row_poss
+		##print "row poss is", row_poss
 		indices = []
 		poss2 = []
 		for p in range(0, size): 
@@ -470,7 +470,7 @@ def poss_manip(board):
 	print "doing the cols"
 	for x in range(0, size):
 		col_poss = poss_col(x)
-		print "col poss is", col_poss
+		##print "col poss is", col_poss
 		indices = []
 		poss2 = []
 		for p in range(0, size): 
@@ -503,7 +503,7 @@ def poss_manip(board):
 	print "doing the boxes"
 	for x in range(0, size):
 		box_poss = poss_box(x)
-		print "box poss is", box_poss
+		##print "box poss is", box_poss
 		indices = []
 		poss2 = []
 		for p in range(0, size):
@@ -631,58 +631,54 @@ def main():
 	changes = fill_possibilities(board)
 	print changes, "numbers removed from the possibilities list."
 	posscheck(board)
-	
-	print "Checking for cases where there is only one possible number allowed in a square.",
-	raw_input("Press any key to continue.")
-	c1 = 0
-	ret = oneoption(board)
-	c1 += ret
-	while ret:
+
+
+	###the functions below can be inserted into a loop.
+	test = 1
+
+	while(test):
+		print "Checking for cases where there is only one possible number allowed in a square.",
+		raw_input("Press any key to continue.")
+		c1 = 0
 		ret = oneoption(board)
 		c1 += ret
+		while ret:
+			ret = oneoption(board)
+			c1 += ret
 	
-	print c1, "numbers inputted with this method."
-	posscheck(board)
-	
-	isdone(board)
-	printboard(board)
+		print c1, "numbers inputted with this method."
+		posscheck(board)
+		test = c1
+		isdone(board)
+		printboard(board)
 
-	print "Checking for cases where a number is only allowed in one square in a row, column, or box.",
-	raw_input("Press any key to continue.")
-	c2 = 0
-	ret = onespot(board)
-	c2 += ret
-	while(ret):
+		print "Checking for cases where a number is only allowed in one square in a row, column, or box.",
+		raw_input("Press any key to continue.")
+		c2 = 0
 		ret = onespot(board)
 		c2 += ret
+		while(ret):
+			ret = onespot(board)
+			c2 += ret
 
-	posscheck(board)
-	print c2, "numbers inputted with this method."
-
-	isdone(board)
-	printboard(board)
+		posscheck(board)
+		print c2, "numbers inputted with this method."
+		test += c2
+		isdone(board)
+		printboard(board)
 	
-	raw_input("Performing further possibilities manipulations:")
-	ret = poss_manip(board)
-	print "ret is", ret
-	while(ret):
+		raw_input("Performing further possibilities manipulations:")
 		ret = poss_manip(board)
 		print "ret is", ret
-		print "\n"
-	isdone(board)
-	printboard(board)
-	print "I need to do something else."
-	printposs()
-	posscheck(board)
-	printboard(board)
-	raw_input("one spot again")
-	ret = onespot(board)
-	while(ret):
-		ret = onespot(board)
+		while(ret):
+			ret = poss_manip(board)
+			print "ret is", ret
+			print "\n"
+		isdone(board)
+		printboard(board)
+		test += ret
+		print "test is ", test
 
-
-	isdone(board)
-	printboard(board)
 
 if __name__ == "__main__":
 	main()
