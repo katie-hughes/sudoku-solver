@@ -1,7 +1,11 @@
-So far the possibilities manipulation function does not work. 
-The goal is, given a list of possibilities for a row/column/box:
-If the same x numbers are the only possiblities in x squares in this list,
-Then those numbers can be eliminated from the remaining squares in the list.
+Welcome to my sudoku solver! These are the methods I use to assist in solving the sudoku:
 
-Right now it works for rows/columns for a very limited case of x=2. 
-The course of action is to first get it working for all cases of x=2, then move on to generalizing over all x
+1. "Single Missing": Looks at each row, column, and box on the board. If any of these are entirely filled except for one number, the remaining number is filled in.
+2. "One option": I look at a list of possibilities for each row, column, and box. If only one possible number is allowed in a given square, the number is filled in, and that number is removed from the list of possible numbers for its neighbors in the row, column, and box. 
+3. "One spot": I look at a list of possibilities for each row, column, and box. If a number is only allowed in one place in the row/column/box, it is filled in, and removed as a possibility for the neighboring boxes in the row, column, and box. 
+4. "Possibilities manip": I look at a list of possibilities for each row, column, and box. If there is a combination of two possibilities for squares in which the same two numbers are the only options, they are eliminated as possibilities from the other empty squares in the row/column/box. (The goal is to expand this function to deal with 3 numbers over 3 different squares, 4 numbers over 4 different squares, etc.)
+
+
+
+Also, I should look at this:
+http://geometer.org/mathcircles/sudoku.pdf
