@@ -1,10 +1,11 @@
 import numpy as np
-
 from itertools import combinations
-
 import time
 
 possibilities = []
+
+
+#=========================B=O=A=R=D===S=E=T=U=P=================================
 
 def printboard(board):
 	size = len(board)
@@ -83,6 +84,11 @@ def sanitycheck(board):
 				return 0
 	return 1
 
+
+
+#===============================================================================
+
+
 ##given a line, see if there is only one number missing.
 ##If yes, fill it into the line, and return 1.
 def fillinone(line):
@@ -142,6 +148,8 @@ def singlemissing(board):
 	return ret
 
 
+#===============================================================================
+
 
 ##given an square, select its row/column/box
 def selectrow(board, row, col):
@@ -164,6 +172,9 @@ def selectbox(board, row, col):
 			box[count] = num
 			count += 1
 	return box
+
+
+#===============================================================================
 
 
 ##for a possibilities row/column/box
@@ -240,6 +251,9 @@ def box_index(size, row, col):
 	r = row / sqt
 	c = col / sqt
 	return sqt*r+c
+
+
+#===============================================================================
 
 
 ##placing a number at a particular location, and updating possibilities list.
@@ -344,6 +358,9 @@ def initialize_possibilities(board, size, slow):
 	if slow:
 		print changes, "numbers removed from the overall list of possibilities."
 
+
+#============================M=E=T=H=O=D=S======================================
+
 ###there is only one option in the possibilities list.
 def oneoption(board):
 	size = len(board)
@@ -356,8 +373,6 @@ def oneoption(board):
 				place(num, x, y, board)
 				ret += 1
 	return ret
-
-
 
 
 #a number can only go in one spot in a row/col/box
@@ -547,8 +562,7 @@ def poss_manip(board):
 				break
 	return count
 
-
-
+#===============================================================================
 
 def checkdone(board):
 	size = len(board)
@@ -582,6 +596,138 @@ def do_method(method, board, slow):
 		printboard(board)
 	return count
 
+
+def num_empty(board):
+	num = 0
+	l = len(board)
+	for r in range(0, l):
+		for c in range(0, l):
+			pos = board[r][c]
+			if pos == 0:
+				num += 1
+	return num
+
+
+#==========================B=R=U=T=E===F=O=R=C=E================================
+
+def simple_place(board, row, col, val):
+	board[row][col] = val
+	return board
+
+def simple_read(board, row, col):
+	return board[row][col]
+
+
+##tries to put a value at a position on the board.
+##if the board already has something at that position, returns board.
+#else, puts the number on the board. If there is a conflict, returns original board
+##if this works, returns the updated board.
+
+def try_val(board, row, col, val):
+	open = simple_read(board, row, col)
+	if open == 0:
+		board_init = np.array(board)
+		print "trying", val, "at", row, col
+		board = simple_place(board, row, col, val)
+		check_row = checkline(selectrow(board, row, col))
+		check_col = checkline(selectcol(board, row, col))
+		check_box = checkline(selectbox(board, row, col))
+		##if any of these is 0 that is bad
+		raw_input("pause")
+		printboard(board)
+		if check_row and check_col and check_box:
+			print "This placement was ok. \n\n"
+			return 1, board
+		else:
+			print "This placement was bad. "
+			return 0, board_init
+	else:
+		#print "this spot was not open. "
+		return -1, board
+
+
+#use checkline on selectrow(board, row, col), selectcol, selectbox
+
+def brute_force(board):
+	print "tryign to brute force!"
+	printboard(board)
+	raw_input("do something")
+	size = len(board)
+	original = board
+	history = np.zeros((size, size, 3), dtype=int)
+	print "hisoty is", history
+	r = 0
+	c = 0
+	v = 1
+	lastr = 0
+	lastc = 0
+	lastv = 0
+	while r < size:
+		c = 0
+		while c < size:
+			v = 1
+			while v < (size+1):
+				res, board = try_val(board, r, c, v)
+				if res == -1:
+					break
+				if res == 1:
+					print "res is 1"
+					if history[r][c][2] == 0:
+						history[r][c][0] = lastr
+						history[r][c][1] = lastc
+						history[r][c][2] = lastv
+					print "history is", history
+					lastr = r
+					lastc = c
+					lastv = v
+				if res == 0 and v == size:
+					print "nothing fit!"
+					r = lastr
+					c = lastc
+					v = lastv
+					board = simple_place(board, r, c, 0)
+					print "going back to row, col, val", r, c, v
+					while v == size:
+						print "need to continue going bacK"
+						print "history is", history
+						lr = r
+						lc = c
+						lv = v
+						lastr = history[r][c][0]
+						lastc = history[r][c][1]
+						lastv = history[r][c][2]
+						print "lastr, c, v, is", lastr, lastc, lastv
+						r = lastr
+						c = lastc
+						v = lastv
+						print "r, c, v are", r, c, v
+						history[lr][lc][0] = 0
+						history[lr][lc][1] = 0
+						history[lr][lc][2] = 0
+						print "updated history is", history
+						board = simple_place(board, r, c, 0)
+				v += 1
+			c += 1
+		r += 1
+	printboard(board)
+	exit()
+	if checkdone(board):
+		print "yay it is solved!"
+	else:
+		print "Something went wrong. sorry :("
+
+
+
+
+
+
+#===============================================================================
+#====================================:)=========================================
+#================================S=U=D=O=K=U====================================
+#====================================(:=========================================
+#===============================================================================
+
+
 def main():
 	print "Welcome to my sudoku solver!!! :)"
 	size = 0
@@ -598,34 +744,41 @@ def main():
 		except:
 			print "Your input should be a single number."
 	###creating the board
-	print "This puzzle requires numbers from 1 -", size, "in each row, column, and box."
+	#print "This puzzle requires numbers from 1 -", size, "in each row, column, and box."
 	board = np.zeros((size, size), dtype=int)
-
 	##entering known values to board
-	print "Please enter in the known numbers by row, from left to right, separated by spaces (for an empty square, type 0)"
-	for x in range(0, size):
-		while(1):
-			try:
-				print "Row", x+1,
-				s = raw_input(": ")
-				numbers = map(int, s.split())
-				##print "numbers are", numbers
-				if len(numbers) != size:
-					print "Input should contain", size, "numbers."
-				else:
-					numbers = np.array(numbers)
-					max = numbers.max()
-					min = numbers.min()
-					if max>size or min<0:
-						print "All numbers in the row must be between 1 and", size, "!"
+	print "Please enter in the known numbers by row, from left to right,",
+	print "separated by spaces (for an empty square, type 0)"
+	while(1):
+		for x in range(0, size):
+			while(1):
+				try:
+					print "Row", x+1,
+					s = raw_input(": ")
+					numbers = map(int, s.split())
+					if len(numbers) != size:
+						print "Input should contain", size, "numbers."
 					else:
-						board[x] = numbers
-						break
-			except:
-				print "Unrecognized input."
-
-	printboard(board)
-	raw_input("Press any key to continue.")
+						numbers = np.array(numbers)
+						max = numbers.max()
+						min = numbers.min()
+						if max>size or min<0:
+							print "All numbers in the row must be between 1 and", size, "!"
+						else:
+							board[x] = numbers
+							break
+				except:
+					print "Unrecognized input."
+		printboard(board)
+		print "^ ^ ^ Is this the correct board?"
+		print "Press 1 to re-input your numbers,",
+		mistake = raw_input("or any other key to continue: ")
+		try:
+			mistake = int(mistake)
+			if mistake == 1:
+				pass
+		except:
+			break
 	print "Performing preliminary check..."
 	sc = sanitycheck(board)
 	if sc == 0:
@@ -633,58 +786,71 @@ def main():
 		exit()
 	print "All good!"
 
-	print "Do you want to step through the methods tried?",
-	step = raw_input("Press 1 for yes, press anything else for no: ")
-	slow = False
+	print "The BRUTE FORCE method will try every possible combination of",
+	print "numbers until a solution is found."
+	print "If you would like to brute force this sudoku, press 1.",
+	bf = raw_input("Press anything else to try another method instead: ")
 	try:
-		step = int(step)
-		if step == 1:
-			slow = True
+		bf = int(bf)
+		if bf == 1:
+			brute_force(board)
 	except:
-		pass
+		print "The more elegant (?) technique generates lists of possible numbers",
+		print "for each square and through various methods eliminates numbers until",
+		print "the solution is found."
+		print "Press 1 if you would like descriptions of the methods tried.",
+		step = raw_input("Press anything else to go for speed: ")
+		slow = False
+		try:
+			step = int(step)
+			if step == 1:
+				slow = True
+		except:
+			pass
 
-	if slow == False:
-		print "Going for SPEEEEED!"
+		if slow == False:
+			print "Going for SPEEEEED!"
 
-	t0 = time.time()
-
-	if slow:
-		print "Checking for cases where a row, column, or box is only missing one number.",
-		raw_input("Press any key to continue.")
-	c0 = do_method(singlemissing, board, slow)
-	isdone(board, t0, slow)
-
-	initialize_possibilities(board, size, slow)
-
-	test = 1
-	while(test):
-
-		if slow:
-			print "Checking for cases where there is only one possible number allowed in a square.",
-			raw_input("Press any key to continue.")
-		c1 = do_method(oneoption, board, slow)
-		test = c1
-		isdone(board, t0, slow)
+		t0 = time.time()
 
 		if slow:
-			print "Checking for cases where a number is only allowed in one square in a row, column, or box.",
+			print "Checking the simple case where a row, column, or box is only missing one number.",
 			raw_input("Press any key to continue.")
-		c2 = do_method(onespot, board, slow)
-		test += c2
+		c0 = do_method(singlemissing, board, slow)
 		isdone(board, t0, slow)
 
-		if slow:
-			print "Performing some possibilities manipulations. If the same two numbers are the only",
-			print "possibilities in two squares of a row/column/box, they are eliminated as possibilities",
-			print "from the other empty squares in the row/column/box.",
-			raw_input("Press any key to continue.")
-		c3 = do_method(poss_manip, board, slow)
-		test += c3
-		isdone(board, t0, slow)
+		initialize_possibilities(board, size, slow)
 
-	print "Another method needs to be tried to solve this sudoku. Sorry :( "
-	printboard(board)
+		test = 1
+		while(test):
 
+			if slow:
+				print "Checking for cases where there is only one possible number",
+				print "allowed in a square based on the neighbors in the row, column, and box."
+				raw_input("Press any key to continue.")
+			c1 = do_method(oneoption, board, slow)
+			test = c1
+			isdone(board, t0, slow)
+
+			if slow:
+				print "Checking for cases where a certain number is only allowed in",
+				print "a single square in a row, column, or box.",
+				raw_input("Press any key to continue.")
+			c2 = do_method(onespot, board, slow)
+			test += c2
+			isdone(board, t0, slow)
+
+			if slow:
+				print "Performing some possibilities manipulations. If the same two numbers are the only",
+				print "possibilities in two squares of a row/column/box, they are eliminated as possibilities",
+				print "from the other empty squares in the row/column/box.",
+				raw_input("Press any key to continue.")
+			c3 = do_method(poss_manip, board, slow)
+			test += c3
+			isdone(board, t0, slow)
+
+		print "Another method needs to be tried to solve this sudoku. Sorry :( "
+		printboard(board)
 
 if __name__ == "__main__":
 	main()
